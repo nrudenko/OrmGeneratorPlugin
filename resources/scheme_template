@@ -1,0 +1,29 @@
+public enum @ENTITY_NAME@Schema {
+
+@COLUMNS@
+
+    private String columnName;
+    private DBType type;
+
+    S(String columnName, DBType type) {
+        this.columnName = columnName;
+        this.type = type;
+    }
+
+    public String getName() {
+        return columnName;
+    }
+
+    public DBType getType() {
+        return type;
+    }
+
+    public int position() {
+        return this.ordinal();
+    }
+
+    public String toString() {
+        return this.getName();
+    }
+}
+
