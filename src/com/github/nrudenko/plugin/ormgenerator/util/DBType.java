@@ -1,3 +1,5 @@
+package com.github.nrudenko.plugin.ormgenerator.util;
+
 public enum DBType {
 	PRIMARY("INTEGER PRIMARY KEY AUTOINCREMENT"), 
 	INT("INTEGER DEFAULT 0"),
@@ -6,7 +8,8 @@ public enum DBType {
 	TEXT("TEXT"), 
 	NUMERIC("NUMERIC"), 
 	TEXT_NOT_NULL("TEXT NOT NULL"),
-    TEXT_DEFAULT_EMPTY("TEXT DEFAULT \"\"");
+    TEXT_DEFAULT_EMPTY("TEXT DEFAULT \"\""),
+    BLOB("BLOB");
 
 	private String name;
 

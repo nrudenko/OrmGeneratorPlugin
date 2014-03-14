@@ -1,3 +1,5 @@
+package com.github.nrudenko.plugin.ormgenerator;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;

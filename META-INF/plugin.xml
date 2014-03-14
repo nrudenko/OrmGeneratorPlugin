@@ -1,8 +1,8 @@
 <idea-plugin version="2">
   <id>com.github.nrudenko.plugin.ormgenerator</id>
-  <name>Plugin display name here</name>
+  <name>Autogenerate chemes for OrmModel</name>
   <version>1.0</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <vendor email="r,nikolay.e@gmail.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
   <description><![CDATA[
       Enter short description for your plugin here.<br>
@@ -35,7 +35,7 @@
   <project-components>
     <!-- Add your project components here -->
       <component>
-          <implementation-class>OrmModelsProjectComponent</implementation-class>
+          <implementation-class>com.github.nrudenko.plugin.ormgenerator.OrmModelsProjectComponent</implementation-class>
       </component>
   </project-components>
 
