@@ -6,6 +6,7 @@ import com.intellij.ide.util.projectWizard.importSources.JavaModuleSourceRoot;
 import com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDetectionUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -69,28 +70,29 @@ public class SchemaManager {
     private Column getColumn(PsiField field) {
         HashMap<String, String> columnParams = new HashMap<String, String>();
 
-        columnParams.put(COLUMN_NAME, field.getName());
-
         String typeName = field.getType().getInternalCanonicalText();
         FieldType fieldType = FieldType.byName(typeName);
-        if (fieldType != null) {
+        String fieldName = field.getName();
+
+        Column result = null;
+
+        if (fieldType != null || StringUtils.isEmpty(fieldName)) {
+            columnParams.put(COLUMN_NAME, fieldName);
             columnParams.put(COLUMN_TYPE, fieldType.getDbTypeReference());
-        }
-
-
-        PsiAnnotation[] annotations = field.getModifierList().getAnnotations();
-        for (int i = 0; i < annotations.length; i++) {
-            PsiAnnotation annotation = annotations[i];
-            OrmAnnotation ormAnnotation = OrmAnnotation.valueOf(annotation.getNameReferenceElement().getText());
-            switch (ormAnnotation) {
-                case DbColumn:
-                    parseDbColumnAnnotation(columnParams, annotation);
-                    break;
-                case SkipFieldInDb:
-                    return null;
+            PsiAnnotation[] annotations = field.getModifierList().getAnnotations();
+            for (int i = 0; i < annotations.length; i++) {
+                PsiAnnotation annotation = annotations[i];
+                OrmAnnotation ormAnnotation = OrmAnnotation.valueOf(annotation.getNameReferenceElement().getText());
+                switch (ormAnnotation) {
+                    case DbColumn:
+                        parseDbColumnAnnotation(columnParams, annotation);
+                        break;
+                    case SkipFieldInDb:
+                        return null;
+                }
             }
+            result = new Column(columnParams.get(COLUMN_TYPE), columnParams.get(COLUMN_NAME));
         }
-        Column result = new Column(columnParams.get(COLUMN_TYPE), columnParams.get(COLUMN_NAME));
         return result;
     }
 

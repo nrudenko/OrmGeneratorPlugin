@@ -64,7 +64,6 @@ public class SchemeGenerator {
         }
     }
 
-
     private String getSchemaContent(Schema schema) {
         StringBuilder columnStringBuilder = new StringBuilder();
 
