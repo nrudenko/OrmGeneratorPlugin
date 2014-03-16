@@ -1,11 +1,15 @@
+package @PACKAGE@;
+
+import @DB_TYPE_CLASS@;
+
 public enum @SCHEMA_NAME@ {
 
 @COLUMNS@
 
     private String columnName;
-    private util.DBType type;
+    private DBType type;
 
-    S(String columnName, util.DBType type) {
+    @SCHEMA_NAME@(String columnName, DBType type) {
         this.columnName = columnName;
         this.type = type;
     }
@@ -14,7 +18,7 @@ public enum @SCHEMA_NAME@ {
         return columnName;
     }
 
-    public util.DBType getType() {
+    public DBType getType() {
         return type;
     }
 
@@ -26,4 +30,3 @@ public enum @SCHEMA_NAME@ {
         return this.getName();
     }
 }
-

@@ -1,13 +1,14 @@
 package com.github.nrudenko.plugin.ormgenerator.util;
 
-import com.github.nrudenko.plugin.ormgenerator.model.Column;
+import com.github.nrudenko.orm.commons.Column;
+import com.github.nrudenko.orm.commons.DBType;
 import com.github.nrudenko.plugin.ormgenerator.model.Schema;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiJavaFile;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -34,34 +35,37 @@ public class SchemeGenerator {
         return instance;
     }
 
-    public VirtualFile generateSchema(@NotNull Project project, @NotNull PsiJavaFile psiJavaFile) {
-        Schema schema = SchemaManager.getInstance(project).getSchema(psiJavaFile);
+    public void generateSchema(@NotNull Project project, @NotNull PsiJavaFile psiJavaFile) {
+        final Schema schema = SchemaManager.getInstance(project).getSchema(psiJavaFile);
 
         try {
-            generateSchemeClass(schema);
+            final File file = generateSchemaClassFile(schema);
+
+            VirtualFileManager.getInstance().asyncRefresh(new Runnable() {
+                @Override
+                public void run() {
+                    LocalFileSystem.getInstance().findFileByIoFile(file);
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        final VirtualFile generatedSchema = LocalFileSystem.getInstance().findFileByPath(schema.getSchemaPath());
-        if (generatedSchema != null) {
-            generatedSchema.refresh(false, true);
-        }
-        return generatedSchema;
     }
 
-    private void generateSchemeClass(Schema schema) throws IOException {
-        final File packageDir = new File(schema.getSchemaDir());
+    private File generateSchemaClassFile(Schema schema) throws IOException {
+        final File packageDir = new File(schema.getPackageDirPath());
 
         if (!packageDir.exists() && !packageDir.mkdirs()) {
             throw new IOException("Cannot create directory " + FileUtil.toSystemDependentName(packageDir.getPath()));
         }
-        final BufferedWriter writer = new BufferedWriter(new FileWriter(new File(packageDir, schema.getName())));
+        File file = new File(packageDir, schema.getJavaFileName());
+        final BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
             writer.write(getSchemaContent(schema));
         } finally {
             writer.close();
         }
+        return file;
     }
 
     private String getSchemaContent(Schema schema) {
@@ -70,6 +74,8 @@ public class SchemeGenerator {
         String template = getTemplate();
         String entityName = schema.getName();
         template = template.replaceAll("@SCHEMA_NAME@", entityName);
+        template = template.replaceAll("@PACKAGE@", schema.getSchemaPackage());
+        template = template.replaceAll("@DB_TYPE_CLASS@", DBType.class.getName());
 
         fillColumns(columnStringBuilder, schema);
 
@@ -93,7 +99,7 @@ public class SchemeGenerator {
         Iterator<Column> iterator = schema.getColumnList().iterator();
         while (iterator.hasNext()) {
             Column column = iterator.next();
-            addColumn(columnStringBuilder, column.getColumnName(), column.getColumnType());
+            addColumn(columnStringBuilder, column.getName(), column.getType());
             columnStringBuilder.append(",\n");
         }
         columnStringBuilder.setLength(columnStringBuilder.length() - 2);

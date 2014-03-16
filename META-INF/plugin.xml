@@ -1,6 +1,6 @@
 <idea-plugin version="2">
   <id>com.github.nrudenko.plugin.ormgenerator</id>
-  <name>Autogenerate chemes for OrmModel</name>
+  <name>Autogenerate schemas for OrmModel inheritans</name>
   <version>1.0</version>
   <vendor email="r,nikolay.e@gmail.com" url="http://www.yourcompany.com">YourCompany</vendor>
 

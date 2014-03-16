@@ -1,15 +1,21 @@
 package com.github.nrudenko.plugin.ormgenerator.model;
 
+import com.github.nrudenko.orm.commons.Column;
+
 import java.util.List;
 
 public class Schema {
     private String name;
     private String schemaPackage;
-    private String outputDirPath;
+    private String packageDirPath;
     private List<Column> columnList;
 
     public String getName() {
         return name;
+    }
+
+    public String getJavaFileName() {
+        return name + ".java";
     }
 
     public void setName(String name) {
@@ -24,12 +30,12 @@ public class Schema {
         this.schemaPackage = schemaPackage;
     }
 
-    public String getOutputDirPath() {
-        return outputDirPath;
+    public String getPackageDirPath() {
+        return packageDirPath;
     }
 
-    public void setOutputDirPath(String outputDirPath) {
-        this.outputDirPath = outputDirPath;
+    public void setPackageDirPath(String packageDirPath) {
+        this.packageDirPath = packageDirPath;
     }
 
     public List<Column> getColumnList() {
@@ -40,11 +46,7 @@ public class Schema {
         this.columnList = columnList;
     }
 
-    public String getSchemaDir() {
-        return outputDirPath + '/' + schemaPackage.replace('.', '/');
-    }
-
     public String getSchemaPath() {
-        return outputDirPath + '/' + schemaPackage.replace('.', '/') + "/" + name;
+        return packageDirPath + "/" + getJavaFileName();
     }
 }

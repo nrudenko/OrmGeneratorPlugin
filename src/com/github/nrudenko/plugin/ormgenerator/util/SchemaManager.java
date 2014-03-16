@@ -1,23 +1,21 @@
 package com.github.nrudenko.plugin.ormgenerator.util;
 
-import com.github.nrudenko.plugin.ormgenerator.model.Column;
+import com.github.nrudenko.orm.commons.Column;
+import com.github.nrudenko.orm.commons.FieldType;
 import com.github.nrudenko.plugin.ormgenerator.model.Schema;
-import com.intellij.ide.util.projectWizard.importSources.JavaModuleSourceRoot;
-import com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDetectionUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class SchemaManager {
 
-    static final String COLUMN_NAME = "columnName";
-    static final String COLUMN_TYPE = "columnType";
+    static final String COLUMN_NAME = "name";
+    static final String COLUMN_TYPE = "type";
 
     enum OrmAnnotation {
         DbColumn, SkipFieldInDb
@@ -38,18 +36,13 @@ public class SchemaManager {
     }
 
     public Schema getSchema(@NotNull PsiJavaFile psiJavaFile) {
-        ArrayList<JavaModuleSourceRoot> javaModuleSourceRoots = new ArrayList<JavaModuleSourceRoot>(JavaSourceRootDetectionUtil.suggestRoots(new File(project.getBasePath())));
-        for (int i = 0; i < javaModuleSourceRoots.size(); i++) {
-            JavaModuleSourceRoot javaModuleSourceRoot = javaModuleSourceRoots.get(i);
-            System.out.println("!!!!!!!!!!!!!! SOURCES " + javaModuleSourceRoot.getDirectory().getPath());
-        }
         PsiClass psiClass = psiJavaFile.getClasses()[0];
 
         Schema schema = new Schema();
 
-        schema.setName("Schema" + psiJavaFile.getName());
-        schema.setSchemaPackage(psiJavaFile.getPackageName());
-        schema.setOutputDirPath(project.getBasePath());
+        schema.setName(psiClass.getName() + "Schema");
+        schema.setSchemaPackage(psiJavaFile.getPackageName() + ".schema");
+        schema.setPackageDirPath(psiJavaFile.getVirtualFile().getParent().getPath() + "/schema");
         schema.setColumnList(getColumns(psiClass));
         return schema;
     }
@@ -70,13 +63,13 @@ public class SchemaManager {
     private Column getColumn(PsiField field) {
         HashMap<String, String> columnParams = new HashMap<String, String>();
 
-        String typeName = field.getType().getInternalCanonicalText();
-        FieldType fieldType = FieldType.byName(typeName);
+        String typeName = field.getType().getPresentableText();
+        FieldType fieldType = FieldType.byTypeName(typeName);
         String fieldName = field.getName();
 
         Column result = null;
 
-        if (fieldType != null || StringUtils.isEmpty(fieldName)) {
+        if (fieldType != null && !StringUtils.isEmpty(fieldName)) {
             columnParams.put(COLUMN_NAME, fieldName);
             columnParams.put(COLUMN_TYPE, fieldType.getDbTypeReference());
             PsiAnnotation[] annotations = field.getModifierList().getAnnotations();
@@ -107,7 +100,6 @@ public class SchemaManager {
                 v = (String) literalExpression.getValue();
             }
             columnParams.put(attribute.getName(), v);
-
         }
     }
 
