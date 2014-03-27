@@ -61,6 +61,9 @@ public class SchemaManager {
     }
 
     private Column getColumn(PsiField field) {
+        if (isStaticField(field)) {
+            return null;
+        }
         HashMap<String, String> columnParams = new HashMap<String, String>();
 
         String typeName = field.getType().getPresentableText();
@@ -70,12 +73,19 @@ public class SchemaManager {
         Column result = null;
 
         if (fieldType != null && !StringUtils.isEmpty(fieldName)) {
+
             columnParams.put(COLUMN_NAME, fieldName);
             columnParams.put(COLUMN_TYPE, fieldType.getDbTypeReference());
             PsiAnnotation[] annotations = field.getModifierList().getAnnotations();
             for (int i = 0; i < annotations.length; i++) {
                 PsiAnnotation annotation = annotations[i];
-                OrmAnnotation ormAnnotation = OrmAnnotation.valueOf(annotation.getNameReferenceElement().getText());
+                OrmAnnotation ormAnnotation = null;
+                try {
+                    ormAnnotation = OrmAnnotation.valueOf(annotation.getNameReferenceElement().getText());
+                } catch (IllegalArgumentException e) {
+                    //eat for skipping undefined annotations
+                    continue;
+                }
                 switch (ormAnnotation) {
                     case DbColumn:
                         parseDbColumnAnnotation(columnParams, annotation);
@@ -87,6 +97,11 @@ public class SchemaManager {
             result = new Column(columnParams.get(COLUMN_TYPE), columnParams.get(COLUMN_NAME));
         }
         return result;
+    }
+
+    private boolean isStaticField(PsiField field) {
+        PsiModifierList modifierList = field.getModifierList();
+        return modifierList.hasModifierProperty("static");
     }
 
     private void parseDbColumnAnnotation(HashMap<String, String> columnParams, PsiAnnotation annotation) {

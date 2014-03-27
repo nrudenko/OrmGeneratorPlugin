@@ -19,16 +19,9 @@ public class OrmModelListener implements Disposable {
     private static final String ORM_MODEL_QUALIFIED_NAME = "com.github.nrudenko.orm.OrmModel";
 
     private final Project project;
-    private PsiClass ormPsiClass;
 
     public OrmModelListener(@NotNull final Project project) {
         this.project = project;
-        StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {
-            @Override
-            public void run() {
-                ormPsiClass = JavaPsiFacade.getInstance(project).findClass(ORM_MODEL_QUALIFIED_NAME, GlobalSearchScope.projectScope(project));
-            }
-        });
 
         PsiManager.getInstance(project).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
             @Override
@@ -66,6 +59,7 @@ public class OrmModelListener implements Disposable {
     private boolean isOrmFile(@NotNull PsiFile psiFile) {
         boolean result = false;
         if (psiFile instanceof PsiJavaFile) {
+            PsiClass ormPsiClass= JavaPsiFacade.getInstance(project).findClass(ORM_MODEL_QUALIFIED_NAME, GlobalSearchScope.projectScope(project));
             PsiJavaFile psiJavaFile = (PsiJavaFile) psiFile;
             PsiClass[] classes = psiJavaFile.getClasses();
             result = classes[0].isInheritor(ormPsiClass, true);

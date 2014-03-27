@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.github.nrudenko.plugin.ormgenerator</id>
   <name>Autogenerate schemas for OrmModel inheritance</name>
-  <version>1.0</version>
+  <version>1.0.1</version>
   <vendor email="r,nikolay.e@gmail.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
   <description><![CDATA[
