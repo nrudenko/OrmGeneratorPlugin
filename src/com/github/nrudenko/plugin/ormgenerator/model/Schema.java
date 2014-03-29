@@ -7,7 +7,6 @@ import java.util.List;
 public class Schema {
     private String name;
     private String schemaPackage;
-    private String packageDirPath;
     private List<Column> columnList;
 
     public String getName() {
@@ -30,13 +29,6 @@ public class Schema {
         this.schemaPackage = schemaPackage;
     }
 
-    public String getPackageDirPath() {
-        return packageDirPath;
-    }
-
-    public void setPackageDirPath(String packageDirPath) {
-        this.packageDirPath = packageDirPath;
-    }
 
     public List<Column> getColumnList() {
         return columnList;
@@ -44,9 +36,5 @@ public class Schema {
 
     public void setColumnList(List<Column> columnList) {
         this.columnList = columnList;
-    }
-
-    public String getSchemaPath() {
-        return packageDirPath + "/" + getJavaFileName();
     }
 }

@@ -3,7 +3,6 @@ package com.github.nrudenko.plugin.ormgenerator.util;
 import com.github.nrudenko.orm.commons.Column;
 import com.github.nrudenko.orm.commons.FieldType;
 import com.github.nrudenko.plugin.ormgenerator.model.Schema;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -21,33 +20,19 @@ public class SchemaManager {
         DbColumn, SkipFieldInDb
     }
 
-    private static SchemaManager instance;
-    private final Project project;
-
-    private SchemaManager(Project project) {
-        this.project = project;
-    }
-
-    public static SchemaManager getInstance(Project project) {
-        if (instance == null) {
-            instance = new SchemaManager(project);
-        }
-        return instance;
-    }
-
-    public Schema getSchema(@NotNull PsiJavaFile psiJavaFile) {
+    public static Schema getSchema(@NotNull PsiJavaFile psiJavaFile, String schemaPackage) {
         PsiClass psiClass = psiJavaFile.getClasses()[0];
 
         Schema schema = new Schema();
 
         schema.setName(psiClass.getName() + "Schema");
-        schema.setSchemaPackage(psiJavaFile.getPackageName() + ".schema");
-        schema.setPackageDirPath(psiJavaFile.getVirtualFile().getParent().getPath() + "/schema");
+        schema.setSchemaPackage(schemaPackage);
         schema.setColumnList(getColumns(psiClass));
+
         return schema;
     }
 
-    private List<Column> getColumns(@NotNull PsiClass psiClass) {
+    private static List<Column> getColumns(@NotNull PsiClass psiClass) {
         List<Column> result = new ArrayList<Column>();
         PsiField[] allFields = psiClass.getAllFields();
         for (int i = 0; i < allFields.length; i++) {
@@ -60,7 +45,7 @@ public class SchemaManager {
         return result;
     }
 
-    private Column getColumn(PsiField field) {
+    private static Column getColumn(PsiField field) {
         if (isStaticField(field)) {
             return null;
         }
@@ -99,12 +84,12 @@ public class SchemaManager {
         return result;
     }
 
-    private boolean isStaticField(PsiField field) {
+    private static boolean isStaticField(PsiField field) {
         PsiModifierList modifierList = field.getModifierList();
         return modifierList.hasModifierProperty("static");
     }
 
-    private void parseDbColumnAnnotation(HashMap<String, String> columnParams, PsiAnnotation annotation) {
+    private static void parseDbColumnAnnotation(HashMap<String, String> columnParams, PsiAnnotation annotation) {
         PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
         for (int j = 0; j < attributes.length; j++) {
             PsiNameValuePair attribute = attributes[j];

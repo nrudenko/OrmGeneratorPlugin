@@ -20,8 +20,8 @@ public class OrmModelsProjectComponent implements ProjectComponent {
             public void dispose() {
             }
         };
-        final OrmModelListener listener = new OrmModelListener(project);
-        Disposer.register(disposable, listener);
+//        final OrmModelListener listener = new OrmModelListener(project);
+//        Disposer.register(disposable, listener);
     }
 
     public void disposeComponent() {

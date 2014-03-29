@@ -39,6 +39,10 @@
 
   <actions>
     <!-- Add your actions here -->
+      <action id="GenerateSchemaAction" class="com.github.nrudenko.plugin.ormgenerator.GenerateSchemaAction"
+              text="Generate Schema" description="Generate schema">
+          <add-to-group group-id="GenerateGroup" anchor="first"/>
+      </action>
   </actions>
 
     <module-components>

@@ -1,12 +1,13 @@
 package com.github.nrudenko.plugin.ormgenerator;
 
 import com.github.nrudenko.plugin.ormgenerator.model.Schema;
+import com.github.nrudenko.plugin.ormgenerator.util.PsiFileChecker;
+import com.github.nrudenko.plugin.ormgenerator.util.SchemaFileGenerator;
 import com.github.nrudenko.plugin.ormgenerator.util.SchemaManager;
-import com.github.nrudenko.plugin.ormgenerator.util.SchemeGenerator;
+import com.intellij.ide.util.PackageUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -29,8 +30,7 @@ public class OrmModelListener implements Disposable {
                 super.beforeChildRemoval(event);
                 PsiFile psiFile = event.getChild().getContainingFile();
                 if (psiFile != null && isOrmFile(psiFile)) {
-                    Schema schema = SchemaManager.getInstance(project).getSchema((PsiJavaFile) psiFile);
-                    new File(schema.getSchemaPath()).delete();
+                    new File(psiFile.getVirtualFile().getPath()).delete();
                 }
             }
 
@@ -50,21 +50,17 @@ public class OrmModelListener implements Disposable {
                 PsiFile psiFile = event.getFile();
                 if (isOrmFile(psiFile)) {
                     PsiJavaFile psiJavaFile = (PsiJavaFile) psiFile;
-                    SchemeGenerator.getInstance().generateSchema(project, psiJavaFile);
+                    Schema schema = SchemaManager.getSchema(psiJavaFile, psiJavaFile.getPackageName() + ".schema");
+                    final VirtualFile sourceRoot =
+                            ProjectFileIndex.SERVICE.getInstance(project).getSourceRootForFile(psiFile.getVirtualFile());
+                    SchemaFileGenerator.generate(schema, sourceRoot);
                 }
             }
         });
     }
 
     private boolean isOrmFile(@NotNull PsiFile psiFile) {
-        boolean result = false;
-        if (psiFile instanceof PsiJavaFile) {
-            PsiClass ormPsiClass= JavaPsiFacade.getInstance(project).findClass(ORM_MODEL_QUALIFIED_NAME, GlobalSearchScope.projectScope(project));
-            PsiJavaFile psiJavaFile = (PsiJavaFile) psiFile;
-            PsiClass[] classes = psiJavaFile.getClasses();
-            result = classes[0].isInheritor(ormPsiClass, true);
-        }
-        return result;
+        return PsiFileChecker.isTableModel(psiFile);
     }
 
     @Override

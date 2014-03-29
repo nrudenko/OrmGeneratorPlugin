@@ -5,11 +5,11 @@ import com.github.nrudenko.orm.commons.DBType;
 import com.github.nrudenko.plugin.ormgenerator.model.Schema;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.psi.PsiJavaFile;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,41 +20,31 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 
-public class SchemeGenerator {
+public class SchemaFileGenerator {
 
-    private static final String TAG = "SchemeGenerator";
-    private static SchemeGenerator instance;
+    private static final String TAG = "SchemaFileGenerator";
+    private static SchemaFileGenerator instance;
 
-    private SchemeGenerator() {
-    }
-
-    public static SchemeGenerator getInstance() {
-        if (instance == null) {
-            instance = new SchemeGenerator();
-        }
-        return instance;
-    }
-
-    public void generateSchema(@NotNull Project project, @NotNull PsiJavaFile psiJavaFile) {
-        final Schema schema = SchemaManager.getInstance(project).getSchema(psiJavaFile);
-
+    public static VirtualFile generate(@NotNull Schema schema, @NotNull VirtualFile sourceRootDir) {
+        VirtualFile result = null;
         try {
-            final File file = generateSchemaClassFile(schema);
-
-            VirtualFileManager.getInstance().asyncRefresh(new Runnable() {
-                @Override
-                public void run() {
-                    LocalFileSystem.getInstance().findFileByIoFile(file);
-                }
-            });
+            String packagePath = schema.getSchemaPackage().replace(".", File.separator);
+            File packageDir = new File(sourceRootDir.getPath() + File.separator + packagePath);
+            final File file = generateSchemaClassFile(packageDir, schema);
+            result = LocalFileSystem.getInstance().findFileByIoFile(file);
+//            VirtualFileManager.getInstance().asyncRefresh(new Runnable() {
+//                @Override
+//                public void run() {
+//                    result = ;
+//                }
+//            });
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return result;
     }
 
-    private File generateSchemaClassFile(Schema schema) throws IOException {
-        final File packageDir = new File(schema.getPackageDirPath());
-
+    private static File generateSchemaClassFile(File packageDir, Schema schema) throws IOException {
         if (!packageDir.exists() && !packageDir.mkdirs()) {
             throw new IOException("Cannot create directory " + FileUtil.toSystemDependentName(packageDir.getPath()));
         }
@@ -68,7 +58,7 @@ public class SchemeGenerator {
         return file;
     }
 
-    private String getSchemaContent(Schema schema) {
+    private static String getSchemaContent(Schema schema) {
         StringBuilder columnStringBuilder = new StringBuilder();
 
         String template = getTemplate();
@@ -84,10 +74,10 @@ public class SchemeGenerator {
         return template;
     }
 
-    private String getTemplate() {
+    private static String getTemplate() {
         String template = "";
         try {
-            URL url = getClass().getClassLoader().getResource("scheme_template");
+            URL url = SchemaManager.class.getClassLoader().getResource("scheme_template");
             template = Resources.toString(url, Charsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
@@ -95,7 +85,7 @@ public class SchemeGenerator {
         return template;
     }
 
-    private void fillColumns(StringBuilder columnStringBuilder, Schema schema) {
+    private static void fillColumns(StringBuilder columnStringBuilder, Schema schema) {
         Iterator<Column> iterator = schema.getColumnList().iterator();
         while (iterator.hasNext()) {
             Column column = iterator.next();
@@ -106,7 +96,7 @@ public class SchemeGenerator {
         columnStringBuilder.append(";\n");
     }
 
-    private void addColumn(StringBuilder columnStringBuilder, String dbType, String name) {
+    private static void addColumn(StringBuilder columnStringBuilder, String dbType, String name) {
         String nameUpperCase = splitByUpperCase(name).toUpperCase();
         columnStringBuilder
                 .append("    ")
@@ -117,7 +107,7 @@ public class SchemeGenerator {
                 .append(")");
     }
 
-    public String splitByUpperCase(String string) {
+    public static String splitByUpperCase(String string) {
         String[] stringArray = string.split("(?=\\p{Lu})");
         String newStringName = StringUtils.join(stringArray, "_");
         return newStringName;
