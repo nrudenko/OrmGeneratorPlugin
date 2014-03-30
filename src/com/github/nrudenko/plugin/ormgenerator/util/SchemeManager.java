@@ -1,9 +1,12 @@
 package com.github.nrudenko.plugin.ormgenerator.util;
 
 import com.github.nrudenko.orm.commons.Column;
+import com.github.nrudenko.orm.commons.DbType;
 import com.github.nrudenko.orm.commons.FieldType;
-import com.github.nrudenko.plugin.ormgenerator.model.Schema;
+import com.github.nrudenko.plugin.ormgenerator.model.Scheme;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,7 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class SchemaManager {
+public class SchemeManager {
 
     static final String COLUMN_NAME = "name";
     static final String COLUMN_TYPE = "type";
@@ -20,16 +23,18 @@ public class SchemaManager {
         DbColumn, SkipFieldInDb
     }
 
-    public static Schema getSchema(@NotNull PsiJavaFile psiJavaFile, String schemaPackage) {
+    public static Scheme getScheme(@NotNull PsiJavaFile psiJavaFile, String schemePackage) {
         PsiClass psiClass = psiJavaFile.getClasses()[0];
 
-        Schema schema = new Schema();
+        Scheme scheme = new Scheme();
 
-        schema.setName(psiClass.getName() + "Schema");
-        schema.setSchemaPackage(schemaPackage);
-        schema.setColumnList(getColumns(psiClass));
+        scheme.setName(psiClass.getName() + "Scheme");
+        scheme.setSchemePackage(schemePackage);
+        scheme.setColumnList(getColumns(psiClass));
 
-        return schema;
+        scheme.addImport(DbType.class.getName());
+
+        return scheme;
     }
 
     private static List<Column> getColumns(@NotNull PsiClass psiClass) {
@@ -49,10 +54,18 @@ public class SchemaManager {
         if (isStaticField(field)) {
             return null;
         }
+
         HashMap<String, String> columnParams = new HashMap<String, String>();
 
-        String typeName = field.getType().getPresentableText();
-        FieldType fieldType = FieldType.byTypeName(typeName);
+        FieldType fieldType = null;
+        PsiClass fieldPsiClass = getFieldPsiClass(field);
+        if (fieldPsiClass != null && fieldPsiClass.isEnum()) {
+            fieldType = FieldType.ENUM;
+        } else {
+            String typeName = field.getType().getPresentableText();
+            fieldType = FieldType.byTypeName(typeName);
+        }
+
         String fieldName = field.getName();
 
         Column result = null;
@@ -82,6 +95,14 @@ public class SchemaManager {
             result = new Column(columnParams.get(COLUMN_TYPE), columnParams.get(COLUMN_NAME));
         }
         return result;
+    }
+
+    private static PsiClass getFieldPsiClass(PsiField field) {
+        PsiClass psiClass;
+        Project project = field.getProject();
+        String typeFullName = field.getType().getInternalCanonicalText();
+        psiClass = JavaPsiFacade.getInstance(project).findClass(typeFullName, GlobalSearchScope.projectScope(project));
+        return psiClass;
     }
 
     private static boolean isStaticField(PsiField field) {

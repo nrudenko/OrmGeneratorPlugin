@@ -1,11 +1,11 @@
 <idea-plugin version="2">
   <id>com.github.nrudenko.plugin.ormgenerator</id>
-  <name>Autogenerate schemas for OrmModel inheritance</name>
+  <name>Autogenerate schemes for OrmModel inheritance</name>
   <version>1.1</version>
   <vendor email="r.nikolay.e@gmail.com" url="https://github.com/nrudenko/">https://github.com/nrudenko/</vendor>
 
   <description><![CDATA[
-      Plugin for autogeneration schemas which will using in db interaction
+      Plugin for autogeneration schemes which will using in db interaction
     ]]></description>
 
   <change-notes><![CDATA[
@@ -39,8 +39,8 @@
 
   <actions>
     <!-- Add your actions here -->
-      <action id="GenerateSchemaAction" class="com.github.nrudenko.plugin.ormgenerator.GenerateSchemaAction"
-              text="Generate Schema" description="Generate schema">
+      <action id="GenerateSchemeAction" class="com.github.nrudenko.plugin.ormgenerator.GenerateSchemeAction"
+              text="Generate Scheme" description="Generate scheme">
           <add-to-group group-id="GenerateGroup" anchor="first"/>
       </action>
   </actions>

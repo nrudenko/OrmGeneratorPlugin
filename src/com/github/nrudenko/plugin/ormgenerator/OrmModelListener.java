@@ -1,16 +1,14 @@
 package com.github.nrudenko.plugin.ormgenerator;
 
-import com.github.nrudenko.plugin.ormgenerator.model.Schema;
+import com.github.nrudenko.plugin.ormgenerator.model.Scheme;
 import com.github.nrudenko.plugin.ormgenerator.util.PsiFileChecker;
-import com.github.nrudenko.plugin.ormgenerator.util.SchemaFileGenerator;
-import com.github.nrudenko.plugin.ormgenerator.util.SchemaManager;
-import com.intellij.ide.util.PackageUtil;
+import com.github.nrudenko.plugin.ormgenerator.util.SchemeFileGenerator;
+import com.github.nrudenko.plugin.ormgenerator.util.SchemeManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -50,10 +48,10 @@ public class OrmModelListener implements Disposable {
                 PsiFile psiFile = event.getFile();
                 if (isOrmFile(psiFile)) {
                     PsiJavaFile psiJavaFile = (PsiJavaFile) psiFile;
-                    Schema schema = SchemaManager.getSchema(psiJavaFile, psiJavaFile.getPackageName() + ".schema");
+                    Scheme scheme = SchemeManager.getScheme(psiJavaFile, psiJavaFile.getPackageName() + ".scheme");
                     final VirtualFile sourceRoot =
                             ProjectFileIndex.SERVICE.getInstance(project).getSourceRootForFile(psiFile.getVirtualFile());
-                    SchemaFileGenerator.generate(schema, sourceRoot);
+                    SchemeFileGenerator.generate(scheme, sourceRoot);
                 }
             }
         });

@@ -1,25 +1,21 @@
 package com.github.nrudenko.plugin.ormgenerator;
 
-import com.github.nrudenko.plugin.ormgenerator.model.Schema;
+import com.github.nrudenko.plugin.ormgenerator.model.Scheme;
 import com.github.nrudenko.plugin.ormgenerator.util.PsiFileChecker;
-import com.github.nrudenko.plugin.ormgenerator.util.SchemaFileGenerator;
-import com.github.nrudenko.plugin.ormgenerator.util.SchemaManager;
+import com.github.nrudenko.plugin.ormgenerator.util.SchemeFileGenerator;
+import com.github.nrudenko.plugin.ormgenerator.util.SchemeManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataKeys;
-import com.intellij.openapi.editor.actionSystem.EditorActionManager;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 
-public class GenerateSchemaAction extends AnAction {
+public class GenerateSchemeAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
         final Project project = e.getProject();
         Module module = e.getData(DataKeys.MODULE);
@@ -27,13 +23,13 @@ public class GenerateSchemaAction extends AnAction {
         final PsiJavaFile psiFile = (PsiJavaFile) getPsiFile(e);
         final VirtualFile sourceRoot =
                 ProjectFileIndex.SERVICE.getInstance(module.getProject()).getSourceRootForFile(psiFile.getVirtualFile());
-        System.out.println(sourceRoot.getCanonicalFile());
+
         PackageChooserPopup packageChooserPopup = new PackageChooserPopup(project, sourceRoot);
         JBPopup popup = packageChooserPopup.createPopup(new PackageChooserPopup.OnPackageSelectedListener() {
             @Override
             public void onPackageSelected(String qualifiedPackageName) {
-                Schema schema = SchemaManager.getSchema(psiFile, qualifiedPackageName);
-                VirtualFile generatedFile = SchemaFileGenerator.generate(schema, sourceRoot);
+                Scheme scheme = SchemeManager.getScheme(psiFile, qualifiedPackageName);
+                VirtualFile generatedFile = SchemeFileGenerator.generate(scheme, sourceRoot);
                 FileEditorManager.getInstance(project).openFile(generatedFile, true);
             }
         });
