@@ -39,6 +39,7 @@ public class SchemeManager {
 
     private static List<Column> getColumns(@NotNull PsiClass psiClass) {
         List<Column> result = new ArrayList<Column>();
+        result.add(new Column("_id", "INTEGER PRIMARY KEY AUTOINCREMENT"));
         PsiField[] allFields = psiClass.getAllFields();
         for (int i = 0; i < allFields.length; i++) {
             PsiField field = allFields[i];
