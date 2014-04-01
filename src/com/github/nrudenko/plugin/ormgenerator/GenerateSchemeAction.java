@@ -13,6 +13,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.*;
 
 public class GenerateSchemeAction extends AnAction {
@@ -30,6 +31,9 @@ public class GenerateSchemeAction extends AnAction {
             public void onPackageSelected(String qualifiedPackageName) {
                 Scheme scheme = SchemeManager.getScheme(psiFile, qualifiedPackageName);
                 VirtualFile generatedFile = SchemeFileGenerator.generate(scheme, sourceRoot);
+                if(generatedFile!=null) {
+                    generatedFile.refresh(false, false);
+                }
                 FileEditorManager.getInstance(project).openFile(generatedFile, true);
             }
         });

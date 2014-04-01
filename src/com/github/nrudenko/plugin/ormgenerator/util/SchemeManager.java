@@ -18,6 +18,8 @@ public class SchemeManager {
 
     static final String COLUMN_NAME = "name";
     static final String COLUMN_TYPE = "type";
+    static final String COLUMN_ADDITIONAL = "customAdditional";
+    private String v;
 
     enum OrmAnnotation {
         DbColumn, SkipFieldInDb
@@ -32,14 +34,12 @@ public class SchemeManager {
         scheme.setSchemePackage(schemePackage);
         scheme.setColumnList(getColumns(psiClass));
 
-        scheme.addImport(DbType.class.getName());
-
         return scheme;
     }
 
     private static List<Column> getColumns(@NotNull PsiClass psiClass) {
         List<Column> result = new ArrayList<Column>();
-        result.add(new Column("_id", "INTEGER PRIMARY KEY AUTOINCREMENT"));
+        result.add(new Column("_id", DbType.INT));
         PsiField[] allFields = psiClass.getAllFields();
         for (int i = 0; i < allFields.length; i++) {
             PsiField field = allFields[i];
@@ -71,10 +71,10 @@ public class SchemeManager {
 
         Column result = null;
 
-        if (fieldType != null && !StringUtils.isEmpty(fieldName)) {
+        if (fieldType != null && StringUtils.isNotEmpty(fieldName)) {
 
             columnParams.put(COLUMN_NAME, fieldName);
-            columnParams.put(COLUMN_TYPE, fieldType.getDbTypeReference());
+            columnParams.put(COLUMN_TYPE, fieldType.getDbType().name());
             PsiAnnotation[] annotations = field.getModifierList().getAnnotations();
             for (int i = 0; i < annotations.length; i++) {
                 PsiAnnotation annotation = annotations[i];
@@ -93,7 +93,11 @@ public class SchemeManager {
                         return null;
                 }
             }
-            result = new Column(columnParams.get(COLUMN_TYPE), columnParams.get(COLUMN_NAME));
+            result = new Column(columnParams.get(COLUMN_NAME), DbType.valueOf(columnParams.get(COLUMN_TYPE)));
+            String columnAdditional = columnParams.get(COLUMN_ADDITIONAL);
+            if (StringUtils.isNotEmpty(columnAdditional)) {
+                result.setCustomAdditional(columnAdditional);
+            }
         }
         return result;
     }
@@ -120,6 +124,11 @@ public class SchemeManager {
             if (value instanceof PsiLiteralExpression) {
                 PsiLiteralExpression literalExpression = (PsiLiteralExpression) value;
                 v = (String) literalExpression.getValue();
+
+                if (v.startsWith("DbType.") && v.length() > "DbType.".length()) {
+                    String[] split = v.split(".");
+                    v = split[1];
+                }
             }
             columnParams.put(attribute.getName(), v);
         }

@@ -2,31 +2,8 @@ package @PACKAGE@;
 
 @IMPORTS@
 
-public enum @SCHEME_NAME@ {
+public final class @SCHEME_NAME@ {
 
 @COLUMNS@
 
-    private String columnName;
-    private DbType type;
-
-    @SCHEME_NAME@(String columnName, DbType type) {
-        this.columnName = columnName;
-        this.type = type;
-    }
-
-    public String getName() {
-        return columnName;
-    }
-
-    public DbType getType() {
-        return type;
-    }
-
-    public int position() {
-        return this.ordinal();
-    }
-
-    public String toString() {
-        return this.getName();
-    }
 }

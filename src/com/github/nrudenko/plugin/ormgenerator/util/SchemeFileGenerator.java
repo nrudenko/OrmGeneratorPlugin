@@ -1,6 +1,7 @@
 package com.github.nrudenko.plugin.ormgenerator.util;
 
 import com.github.nrudenko.orm.commons.Column;
+import com.github.nrudenko.orm.commons.DbType;
 import com.github.nrudenko.plugin.ormgenerator.model.Scheme;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
@@ -58,10 +59,13 @@ public class SchemeFileGenerator {
         template = template.replaceAll("@SCHEME_NAME@", entityName);
         template = template.replaceAll("@PACKAGE@", scheme.getSchemePackage());
 
+        scheme.addImport(DbType.class.getName());
+        scheme.addImport(Column.class.getName());
         fillImports(importsStringBuilder, scheme);
         template = template.replaceAll("@IMPORTS@", importsStringBuilder.toString());
-        fillColumns(columnStringBuilder, scheme);
 
+//        fillColumns(columnStringBuilder, scheme);
+        fillColumns2(columnStringBuilder, scheme);
         template = template.replaceAll("@COLUMNS@", columnStringBuilder.toString());
 
         return template;
@@ -92,14 +96,23 @@ public class SchemeFileGenerator {
         Iterator<Column> iterator = scheme.getColumnList().iterator();
         while (iterator.hasNext()) {
             Column column = iterator.next();
-            addColumn(columnStringBuilder, column.getName(), column.getType());
+            addColumn(columnStringBuilder, column.getName(), column.getType().name());
             columnStringBuilder.append(",\n");
         }
         columnStringBuilder.setLength(columnStringBuilder.length() - 2);
         columnStringBuilder.append(";\n");
     }
 
-    private static void addColumn(StringBuilder columnStringBuilder, String dbType, String name) {
+    private static void fillColumns2(StringBuilder columnStringBuilder, Scheme scheme) {
+        Iterator<Column> iterator = scheme.getColumnList().iterator();
+        while (iterator.hasNext()) {
+            Column column = iterator.next();
+            addColumn(columnStringBuilder, column);
+            columnStringBuilder.append(";\n");
+        }
+    }
+
+    private static void addColumn(StringBuilder columnStringBuilder, String name, String dbType) {
         String nameUpperCase = splitByUpperCase(name).toUpperCase();
         columnStringBuilder
                 .append("    ")
@@ -108,6 +121,24 @@ public class SchemeFileGenerator {
                 .append(name).append("\", ")
                 .append(dbType)
                 .append(")");
+    }
+
+    private static void addColumn(StringBuilder columnStringBuilder, Column column) {
+        String nameUpperCase = splitByUpperCase(column.getName()).toUpperCase();
+//        public static final Column _ID = new Column("_id", DbType.INT);
+        columnStringBuilder
+                .append("    public static final Column ")
+                .append(nameUpperCase)
+                .append(" = new Column(\"")
+                .append(column.getName()).append("\", ")
+                .append(" DbType.")
+                .append(column.getType().name());
+
+        if (StringUtils.isNotEmpty(column.getCustomAdditional())) {
+            columnStringBuilder.append(" \"")
+                    .append(column.getCustomAdditional()).append("\"");
+        }
+        columnStringBuilder.append(")");
     }
 
     public static String splitByUpperCase(String string) {
