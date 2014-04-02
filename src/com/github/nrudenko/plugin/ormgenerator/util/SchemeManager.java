@@ -1,8 +1,8 @@
 package com.github.nrudenko.plugin.ormgenerator.util;
 
-import com.github.nrudenko.orm.commons.Column;
 import com.github.nrudenko.orm.commons.DbType;
 import com.github.nrudenko.orm.commons.FieldType;
+import com.github.nrudenko.plugin.ormgenerator.model.SchemeColumn;
 import com.github.nrudenko.plugin.ormgenerator.model.Scheme;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -19,10 +19,11 @@ public class SchemeManager {
     static final String COLUMN_NAME = "name";
     static final String COLUMN_TYPE = "type";
     static final String COLUMN_ADDITIONAL = "customAdditional";
+    public static final String COLUMN_COMMENT = "column_comment";
     private String v;
 
     enum OrmAnnotation {
-        DbColumn, SkipFieldInDb
+        DbColumn, SkipFieldInDb, VirtualColumn
     }
 
     public static Scheme getScheme(@NotNull PsiJavaFile psiJavaFile, String schemePackage) {
@@ -30,20 +31,24 @@ public class SchemeManager {
 
         Scheme scheme = new Scheme();
 
-        scheme.setName(psiClass.getName() + "Scheme");
+        scheme.setTableName(psiClass.getName());
         scheme.setSchemePackage(schemePackage);
         scheme.setColumnList(getColumns(psiClass));
 
         return scheme;
     }
 
-    private static List<Column> getColumns(@NotNull PsiClass psiClass) {
-        List<Column> result = new ArrayList<Column>();
-        result.add(new Column("_id", DbType.INT));
+    private static List<SchemeColumn> getColumns(@NotNull PsiClass psiClass) {
+        List<SchemeColumn> result = new ArrayList<SchemeColumn>();
+        SchemeColumn id = new SchemeColumn("_id", DbType.INT);
+        id.setComments("PRIMARY AUTOINCREMENT");
+        result.add(id);
+
         PsiField[] allFields = psiClass.getAllFields();
         for (int i = 0; i < allFields.length; i++) {
             PsiField field = allFields[i];
-            Column column = getColumn(field);
+            String tableName = psiClass.getName();
+            SchemeColumn column = getColumn(field);
             if (column != null) {
                 result.add(column);
             }
@@ -51,14 +56,14 @@ public class SchemeManager {
         return result;
     }
 
-    private static Column getColumn(PsiField field) {
+    private static SchemeColumn getColumn(PsiField field) {
         if (isStaticField(field)) {
             return null;
         }
 
         HashMap<String, String> columnParams = new HashMap<String, String>();
 
-        FieldType fieldType = null;
+        FieldType fieldType;
         PsiClass fieldPsiClass = getFieldPsiClass(field);
         if (fieldPsiClass != null && fieldPsiClass.isEnum()) {
             fieldType = FieldType.ENUM;
@@ -69,10 +74,9 @@ public class SchemeManager {
 
         String fieldName = field.getName();
 
-        Column result = null;
+        SchemeColumn result = null;
 
         if (fieldType != null && StringUtils.isNotEmpty(fieldName)) {
-
             columnParams.put(COLUMN_NAME, fieldName);
             columnParams.put(COLUMN_TYPE, fieldType.getDbType().name());
             PsiAnnotation[] annotations = field.getModifierList().getAnnotations();
@@ -91,12 +95,19 @@ public class SchemeManager {
                         break;
                     case SkipFieldInDb:
                         return null;
+                    case VirtualColumn:
+                        columnParams.put(COLUMN_COMMENT, "virtual column");
+                        break;
                 }
             }
-            result = new Column(columnParams.get(COLUMN_NAME), DbType.valueOf(columnParams.get(COLUMN_TYPE)));
+            result = new SchemeColumn(columnParams.get(COLUMN_NAME), DbType.valueOf(columnParams.get(COLUMN_TYPE)));
             String columnAdditional = columnParams.get(COLUMN_ADDITIONAL);
             if (StringUtils.isNotEmpty(columnAdditional)) {
                 result.setCustomAdditional(columnAdditional);
+            }
+            String columnComment = columnParams.get(COLUMN_COMMENT);
+            if (StringUtils.isNotEmpty(columnComment)) {
+                result.setComments(columnComment);
             }
         }
         return result;
@@ -130,7 +141,11 @@ public class SchemeManager {
                     v = split[1];
                 }
             }
-            columnParams.put(attribute.getName(), v);
+            String name = attribute.getName();
+            columnParams.put(name, v);
+            if(name!=null && name.equals("additional")){
+                columnParams.put(COLUMN_COMMENT, v);
+            }
         }
     }
 
