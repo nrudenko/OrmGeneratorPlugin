@@ -133,7 +133,9 @@ public class SchemeFileGenerator {
             columnStringBuilder.append(tableName)
                     .append(".");
         }
-        columnStringBuilder.append(column.getName()).append("\", ")
+        columnStringBuilder
+                .append(column.getName())
+                .append("\", ")
                 .append(" DbType.")
                 .append(column.getType().name());
 

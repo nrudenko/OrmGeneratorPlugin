@@ -7,6 +7,7 @@ public class SchemeColumn extends Column{
 
     String comments;
     boolean isVirtual;
+    private String additional;
 
     public SchemeColumn(String name) {
         super(name);
@@ -34,5 +35,13 @@ public class SchemeColumn extends Column{
 
     public void setVirtual(boolean isVirtual) {
         this.isVirtual = isVirtual;
+    }
+
+    public void setAdditional(String additional) {
+        this.additional = additional;
+    }
+
+    public String getAdditional() {
+        return additional;
     }
 }
