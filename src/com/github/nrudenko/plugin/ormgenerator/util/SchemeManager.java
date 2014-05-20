@@ -69,7 +69,9 @@ public class SchemeManager {
 
         columnParams.put(IS_VIRTUAL, "false");
         columnParams.put(COLUMN_NAME, field.getName());
-        columnParams.put(COLUMN_TYPE, fieldType.getDbType().name());
+        if (fieldType != null) {
+            columnParams.put(COLUMN_TYPE, fieldType.getDbType().name());
+        }
 
         processAnnotations(field, columnParams);
 
@@ -169,12 +171,10 @@ public class SchemeManager {
             if (value instanceof PsiLiteralExpression) {
                 PsiLiteralExpression literalExpression = (PsiLiteralExpression) value;
                 v = (String) literalExpression.getValue();
-
-                if (v.startsWith(DbType.class.getSimpleName())) {
-                    String[] split = v.split(".");
-                    if (split.length > 2) {
-                        v = split[1];
-                    }
+            } else if (v.startsWith(DbType.class.getSimpleName())) {
+                String[] split = v.split("\\.");
+                if (split.length > 1) {
+                    v = split[1];
                 }
             }
             String name = attribute.getName();
