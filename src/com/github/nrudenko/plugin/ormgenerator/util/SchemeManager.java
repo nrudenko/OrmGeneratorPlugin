@@ -135,15 +135,14 @@ public class SchemeManager {
                 continue;
             }
             switch (ormAnnotation) {
+                case VirtualColumn:
+                    columnParams.put(IS_VIRTUAL, "true");
                 case DbColumn:
                     parseDbColumnAnnotation(columnParams, annotation);
                     break;
                 case DbSkipField:
                     columnParams.put(SHOULD_SKIP, "true");
                     return;
-                case VirtualColumn:
-                    columnParams.put(IS_VIRTUAL, "true");
-                    break;
             }
         }
     }
