@@ -1,4 +1,5 @@
-OrmGeneratorPlugin
+<b>DEPRICATED</b> see https://github.com/nrudenko/dora
+<s>OrmGeneratorPlugin</s>
 ==================
 
 <b>Plugin for Android Studio which generate schemes</b>
